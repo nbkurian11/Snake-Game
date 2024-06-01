@@ -8,7 +8,7 @@ CELL = 20
 DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 800
 
-# Colors
+# Colours
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
