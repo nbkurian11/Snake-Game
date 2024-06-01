@@ -1,128 +1,130 @@
-import pygame, sys, random
+import pygame
+import sys
+import random
 
-#constants
+# Constants
 FPS = 10
 CELL = 20
-display_width = 800
-display_length = 800
+DISPLAY_WIDTH = 800
+DISPLAY_HEIGHT = 800
 
-
-#colours
+# Colors
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+WHITE = (255, 255, 255)
 
-
-
-#snake sprite
+# Snake class
 class Snake:
     def __init__(self):
-        self.body = [display_width // 3, display_length // 3]
-        self.move = 'LEFT'
+        self.body = [(DISPLAY_WIDTH // 2, DISPLAY_HEIGHT // 2)]
+        self.direction = pygame.K_LEFT
         self.growth = False
-    
-    #MOVEMENT OF SNAKE CTRL
+
     def movement(self):
-        position = self.body(0)
-        x, y = position
-        if self.move == 'UP':
-            y -= CELL
-        elif self.move == 'DOWN':
-            y += CELL
-        elif self.move == 'RIGHT':
-            y += CELL
-        elif self.move == 'LEFT':
-            y -= CELL
-        self.body.insert(0, (x, y))
+        head_x, head_y = self.body[0]
+        if self.direction == pygame.K_UP:
+            head_y -= CELL
+        elif self.direction == pygame.K_DOWN:
+            head_y += CELL
+        elif self.direction == pygame.K_LEFT:
+            head_x -= CELL
+        elif self.direction == pygame.K_RIGHT:
+            head_x += CELL
+
+        new_head = (head_x, head_y)
+        self.body.insert(0, new_head)
+
         if not self.growth:
             self.body.pop()
         else:
             self.growth = False
-    
-    def snake_size(self):
-        self.growth = True 
 
-    def display_snake(self, display):
-        for segment in self.body:
-            pygame.draw.rect(display, GREEN, (segment[0], segment[1], CELL, CELL))
+    def change_direction(self, new_direction):
+        if new_direction in [pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT]:
+            opposite_directions = {pygame.K_UP: pygame.K_DOWN, pygame.K_DOWN: pygame.K_UP,
+                                   pygame.K_LEFT: pygame.K_RIGHT, pygame.K_RIGHT: pygame.K_LEFT}
+            if new_direction != opposite_directions[self.direction]:
+                self.direction = new_direction
 
-
-    def snakeimpact(self):
-        position = self.body(0)
-        if position[0] < 0 or position[0] >= display_width or position[1] < 0 or position[1] >= display_length:
+    def check_collision(self):
+        head_x, head_y = self.body[0]
+        # Check collision with walls
+        if head_x < 0 or head_x >= DISPLAY_WIDTH or head_y < 0 or head_y >= DISPLAY_HEIGHT:
             return True
-        for segment in self.body[1:]:
-            if position == segment:
-                return True
-            
-        return False 
+        # Check collision with itself
+        if len(self.body) > 1 and (head_x, head_y) in self.body[1:]:
+            return True
+        return False
 
+    def grow_snake(self):
+        self.growth = True
 
+    def draw(self, surface):
+        for segment in self.body:
+            pygame.draw.rect(surface, GREEN, (*segment, CELL, CELL))
 
-
-#food sprite
+# Food class
 class Food:
     def __init__(self):
-        self.movement = (random.randint(0, display_length - CELL) // CELL * CELL,
-                               random.randint(0, display_length - CELL) // CELL * CELL)
+        self.position = self.random_position()
 
+    def random_position(self):
+        return (random.randint(0, (DISPLAY_WIDTH - CELL) // CELL) * CELL,
+                random.randint(0, (DISPLAY_HEIGHT - CELL) // CELL) * CELL)
 
-    def draw(self, display):
-        pygame.draw.circle(display, RED, (self.movement, CELL, CELL))
-        
-    def interaction(self, Snake):
-        position = Snake.body[0]
-        if position == self.movement:
-            Snake.growth()
-            self.movement = (random.randint(0, display_length - CELL) // CELL * CELL,
-                               random.randint(0, display_length - CELL) // CELL * CELL)
+    def draw(self, surface):
+        pygame.draw.rect(surface, RED, (*self.position, CELL, CELL))
 
-#mainloop
+# Main loop
 def main():
     pygame.init()
-    display = pygame.display.set_mode((display_width, display_length))
-    pygame.display.set_caption("The Snake Game")
-    timer = pygame.time.Clock()
+    pygame.font.init()  # Initialize the font module
+    display = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
+    pygame.display.set_caption("Snake Game")
+    clock = pygame.time.Clock()
+
+    # Initialize font for score display
+    font = pygame.font.SysFont(None, 36)
 
     snake = Snake()
     food = Food()
 
+    score = 0
 
-    running = True 
-    while running :
-        display.fill(BLACK)
-
+    running = True
+    while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP and Snake.direction != 'DOWN':
-                    Snake.direction = 'UP'
-                elif event.key == pygame.K_DOWN and Snake.direction != 'UP':
-                    Snake.direction = 'DOWN'
-                elif event.key == pygame.K_LEFT and Snake.direction != 'RIGHT':
-                    Snake.direction = 'LEFT'
-                elif event.key == pygame.K_RIGHT and Snake.direction != 'LEFT':
-                    Snake.direction = 'RIGHT'
+                snake.change_direction(event.key)
 
+        snake.movement()
 
-        Snake.movement()
-        Snake.display_snake()
-        food.draw()
+        if snake.body[0] == food.position:
+            snake.grow_snake()
+            food.position = food.random_position()
+            score += 1
 
-
-        if Snake.snakeimpact():
+        if snake.check_collision():
             running = False
 
-        food.interaction(Snake)
+        display.fill(BLACK)
+        snake.draw(display)
+        food.draw(display)
+
+        # Display the score
+        score_text = font.render(f'Score: {score}', True, WHITE)
+        display.blit(score_text, (10, 10))
 
         pygame.display.flip()
         clock.tick(FPS)
 
     pygame.quit()
+    sys.exit()
 
 if __name__ == "__main__":
     main()
-        
 
 
