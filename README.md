@@ -1,4 +1,4 @@
-# snakegame
+# Snake Game
 The Classic Snake Game using Pygame (WIP)
 
 Things to do:
