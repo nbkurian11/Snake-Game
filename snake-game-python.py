@@ -8,7 +8,7 @@ CELL = 20
 DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 800
 
-# Colours
+# Colors
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
@@ -76,13 +76,41 @@ class Food:
     def draw(self, surface):
         pygame.draw.rect(surface, RED, (*self.position, CELL, CELL))
 
+# Main menu
+def main_menu(display):
+    font = pygame.font.SysFont("Arial", 48)
+    menu_text = font.render("Enter to Start", True, WHITE)
+    text_rect = menu_text.get_rect(center=(DISPLAY_WIDTH // 2, DISPLAY_HEIGHT // 2))
+    display.blit(menu_text, text_rect)
+    pygame.display.flip()
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:
+                    waiting = False
+
+
 # Main loop
 def main():
+    pygame.mixer.pre_init(44100,16,2,4096)
     pygame.init()
     pygame.font.init()  # Initialize the font module
     display = pygame.display.set_mode((DISPLAY_WIDTH, DISPLAY_HEIGHT))
     pygame.display.set_caption("Snake Game")
     clock = pygame.time.Clock()
+
+
+    #play background music
+    pygame.mixer.music.load("jungle.mp3")
+    pygame.mixer.music.set_volume(0.5)
+    pygame.mixer.music.play(-1)
+
+
+    
 
     # Initialize font for score display
     font = pygame.font.SysFont(None, 36)
