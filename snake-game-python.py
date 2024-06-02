@@ -103,6 +103,8 @@ def main():
     pygame.display.set_caption("Snake Game")
     clock = pygame.time.Clock()
 
+    background_image = pygame.image.load("back.png")
+
 
     #play background music
     pygame.mixer.music.load("jungle.mp3")
@@ -138,7 +140,7 @@ def main():
         if snake.check_collision():
             running = False
 
-        display.fill(BLACK)
+        display.blit(background_image, (0, 0))
         snake.draw(display)
         food.draw(display)
 
