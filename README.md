@@ -7,5 +7,5 @@ Things to do:
 2) Create high score display
 3) add music (completed)
 4) design sprites
-5) create a better map
+5) create a better map (completed)
 6) Fix error, food stops appearing 
