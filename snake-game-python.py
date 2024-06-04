@@ -8,11 +8,32 @@ CELL = 20
 DISPLAY_WIDTH = 800
 DISPLAY_HEIGHT = 800
 
-# Colors
+# Colours
 GREEN = (0, 255, 0)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 WHITE = (255, 255, 255)
+
+class Button:
+    def __init__(self, text, pos, size):
+        self.text = text
+        self.pos = pos
+        self.size = size
+        self.color = WHITE
+        self.rect = pygame.Rect(pos, size)
+        self.font = pygame.font.SysFont("Times New Roman", 46)
+        self.text_surf = self.font.render(text, True, BLACK)
+        self.text_rect = self.text_surf.get_rect(center=self.rect.center)
+
+    def draw(self, display):
+        pygame.draw.rect(display, self.color, self.rect)
+        display.blit(self.text_surf, self.text_rect)
+
+    def is_clicked(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                return True
+        return False
 
 # Snake class
 class Snake:
@@ -78,21 +99,25 @@ class Food:
 
 # Main menu
 def main_menu(display):
-    font = pygame.font.SysFont("Arial", 48)
-    menu_text = font.render("Enter to Start", True, WHITE)
-    text_rect = menu_text.get_rect(center=(DISPLAY_WIDTH // 2, DISPLAY_HEIGHT // 2))
-    display.blit(menu_text, text_rect)
-    pygame.display.flip()
-    waiting = True
-    while waiting:
+    start_button = Button("Start", (DISPLAY_WIDTH // 2 - 100, DISPLAY_HEIGHT // 2 - 50), (200, 100))
+    quit_button = Button("Quit", (DISPLAY_WIDTH // 2 - 100, DISPLAY_HEIGHT // 2 + 100), (200, 100))
+
+    menu = True
+    while menu:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    waiting = False
+            if start_button.is_clicked(event):
+                menu = False
+            if quit_button.is_clicked(event):
+                pygame.quit()
+                sys.exit()
 
+        display.fill(BLACK)
+        start_button.draw(display)
+        quit_button.draw(display)
+        pygame.display.flip()
 
 # Main loop
 def main():
@@ -103,16 +128,19 @@ def main():
     pygame.display.set_caption("Snake Game")
     clock = pygame.time.Clock()
 
-    background_image = pygame.image.load("back.png")
+    background_image = pygame.image.load("bg.png")
 
-
+    #timer
+    start_time = pygame.time.get_ticks()
+    timer_font =pygame.font.SysFont(None, 36)
+    
     #play background music
     pygame.mixer.music.load("jungle.mp3")
     pygame.mixer.music.set_volume(0.5)
     pygame.mixer.music.play(-1)
 
-
-    
+    #display main_menu
+    main_menu(display)
 
     # Initialize font for score display
     font = pygame.font.SysFont(None, 36)
@@ -124,6 +152,12 @@ def main():
 
     running = True
     while running:
+        # Calculate time and render timer
+        current_time = pygame.time.get_ticks() - start_time
+        seconds = current_time // 1000 
+        timer_text = timer_font.render(f'Time: {seconds // 60:02}:{seconds % 60:02}', True, WHITE)
+        display.blit(timer_text, (DISPLAY_WIDTH - timer_text.get_width() - 10, 10))
+        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
